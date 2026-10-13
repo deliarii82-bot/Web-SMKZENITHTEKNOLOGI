@@ -20,5 +20,6 @@ class Prestasi extends Model
         'keterangan',
         'foto',
         'tahun_ajaran',
+        'id_user',
     ];
 }

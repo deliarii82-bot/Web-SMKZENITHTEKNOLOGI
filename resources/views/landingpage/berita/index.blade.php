@@ -4,163 +4,137 @@
 
 @section('content')
 
-<section class="py-5 bg-light">
+    <section class="py-5 bg-light">
 
-    <div class="container py-4">
+        <div class="container py-4">
 
-        {{-- HEADER --}}
-        <div class="text-center">
+            {{-- HEADER --}}
+            <div class="text-center">
 
-            <span class="badge bg-primary rounded-pill px-3 py-2">
-                <i class="bi bi-newspaper me-1"></i>
-                Informasi Sekolah
-            </span>
+                <span class="badge bg-primary rounded-pill px-3 py-2">
+                    <i class="bi bi-newspaper me-1"></i>
+                    Informasi Sekolah
+                </span>
 
-            <h1 class="fw-bold mt-3 mb-2">
-                Berita Terbaru
-            </h1>
+                <h1 class="fw-bold mt-3 mb-2">
+                    Berita Terbaru
+                </h1>
 
-            <p class="text-muted mb-0">
-                Ikuti perkembangan dan kegiatan terbaru di
-                {{ $profil->nama_sekolah ?? 'sekolah kami' }}
-            </p>
+                <p class="text-muted mb-0">
+                    Ikuti perkembangan dan kegiatan terbaru di
+                    {{ $profil->nama_sekolah ?? 'sekolah kami' }}
+                </p>
+
+            </div>
 
         </div>
 
-    </div>
-
-</section>
+    </section>
 
 
-<section class="py-5">
+    <section class="py-5">
 
-    <div class="container">
+        <div class="container">
 
-        @if($berita->count())
+            @if ($berita->count())
 
-            <div class="row g-4">
+                <div class="row g-4">
 
-                @foreach($berita as $item)
+                    @foreach ($berita as $item)
+                        <div class="col-md-6 col-lg-4">
 
-                    <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-0 shadow-sm overflow-hidden">
 
-                        <div class="card h-100 border-0 shadow-sm overflow-hidden">
-
-                            {{-- FOTO BERITA --}}
-                            <div
-                                style="
+                                {{-- FOTO BERITA --}}
+                                <div
+                                    style="
                                     height:230px;
                                     background:#f1f3f5;
-                                "
-                            >
+                                ">
 
-                                @if($item->gambar)
+                                    @if ($item->gambar)
+                                        <img src="{{ asset('storage/' . $item->gambar) }}" alt="{{ $item->judul }}"
+                                            class="w-100 h-100" style="object-fit:cover;">
+                                    @else
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center">
 
-                                    <img
-                                        src="{{ asset('storage/' . $item->gambar) }}"
-                                        alt="{{ $item->judul }}"
-                                        class="w-100 h-100"
-                                        style="object-fit:cover;"
-                                    >
+                                            <i class="bi bi-newspaper text-secondary" style="font-size:70px;"></i>
 
-                                @else
+                                        </div>
+                                    @endif
 
-                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                </div>
 
-                                        <i
-                                            class="bi bi-newspaper text-secondary"
-                                            style="font-size:70px;"
-                                        ></i>
+
+                                {{-- ISI CARD --}}
+                                <div class="card-body p-4 d-flex flex-column">
+
+                                    {{-- TANGGAL --}}
+                                    <small class="text-muted mb-2">
+
+                                        <i class="bi bi-calendar3 me-1"></i>
+
+                                        {{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}
+
+                                    </small>
+
+
+                                    {{-- JUDUL --}}
+                                    <h5 class="fw-bold mb-3">
+
+                                        {{ $item->judul }}
+
+                                    </h5>
+
+
+                                    {{-- RINGKASAN --}}
+                                    <p class="text-muted mb-4">
+
+                                        {{ \Illuminate\Support\Str::limit(strip_tags($item->isi), 150) }}
+
+                                    </p>
+
+
+                                    {{-- TOMBOL --}}
+                                    <div class="mt-auto">
+
+
+                                        <a href="{{ route('berita.detail', $item->id ?? $item->getKey()) }}"
+                                            class="btn btn-primary">
+                                            Baca Selengkapnya
+                                            <i class="bi bi-arrow-right ms-2"></i>
+                                        </a>
 
                                     </div>
-
-                                @endif
-
-                            </div>
-
-
-                            {{-- ISI CARD --}}
-                            <div class="card-body p-4 d-flex flex-column">
-
-                                {{-- TANGGAL --}}
-                                <small class="text-muted mb-2">
-
-                                    <i class="bi bi-calendar3 me-1"></i>
-
-                                    {{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}
-
-                                </small>
-
-
-                                {{-- JUDUL --}}
-                                <h5 class="fw-bold mb-3">
-
-                                    {{ $item->judul }}
-
-                                </h5>
-
-
-                                {{-- RINGKASAN --}}
-                                <p class="text-muted mb-4">
-
-                                    {{ \Illuminate\Support\Str::limit(
-                                        strip_tags($item->isi),
-                                        150
-                                    ) }}
-
-                                </p>
-
-
-                                {{-- TOMBOL --}}
-                                <div class="mt-auto">
-
-                                    <a
-                                        href="{{ route('berita.detail', $item->id_berita) }}"
-                                        class="btn btn-primary"
-                                    >
-
-                                        Baca Selengkapnya
-
-                                        <i class="bi bi-arrow-right ms-2"></i>
-
-                                    </a>
 
                                 </div>
 
                             </div>
 
                         </div>
+                    @endforeach
 
-                    </div>
+                </div>
+            @else
+                {{-- JIKA BELUM ADA BERITA --}}
+                <div class="text-center py-5">
 
-                @endforeach
+                    <i class="bi bi-newspaper text-muted" style="font-size:70px;"></i>
 
-            </div>
+                    <h4 class="fw-bold mt-3">
+                        Belum Ada Berita
+                    </h4>
 
-        @else
+                    <p class="text-muted mb-0">
+                        Berita dan kegiatan sekolah belum tersedia.
+                    </p>
 
-            {{-- JIKA BELUM ADA BERITA --}}
-            <div class="text-center py-5">
+                </div>
 
-                <i
-                    class="bi bi-newspaper text-muted"
-                    style="font-size:70px;"
-                ></i>
+            @endif
 
-                <h4 class="fw-bold mt-3">
-                    Belum Ada Berita
-                </h4>
+        </div>
 
-                <p class="text-muted mb-0">
-                    Berita dan kegiatan sekolah belum tersedia.
-                </p>
-
-            </div>
-
-        @endif
-
-    </div>
-
-</section>
+    </section>
 
 @endsection

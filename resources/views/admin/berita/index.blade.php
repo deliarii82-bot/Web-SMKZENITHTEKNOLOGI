@@ -9,16 +9,19 @@
         {{-- HEADER --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
 
+            @php
+                $profil = DB::table('profil_sekolahs')->first();
+            @endphp
+
             <div>
                 <h2 class="fw-bold mb-1">
                     Data Berita
                 </h2>
 
                 <p class="text-muted mb-0">
-                    Daftar berita SMK Cendikia Teknologi
+                    Daftar berita {{ $profil->nama_sekolah ?? 'SMK Zenith Teknologi' }}
                 </p>
             </div>
-
 
             <div class="d-flex gap-2">
 
@@ -30,12 +33,10 @@
                 </a>
 
 
-                @if (auth()->user()->role == 'Admin')
+                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Operator')
                     <a href="{{ route('berita.create') }}" class="btn btn-primary">
-
                         <i class="bi bi-plus-lg me-2"></i>
                         Tambah Berita
-
                     </a>
                 @endif
 
@@ -185,45 +186,30 @@
 
 
                         {{-- AKSI --}}
-                        @if (auth()->user()->role == 'Admin')
+                        @if (auth()->user()->role == 'Admin' || $data->id_user === auth()->id())
                             <div class="card-footer bg-white border-0 px-4 pb-4">
-
-
                                 <div class="d-flex gap-2">
-
-
                                     <a href="{{ route('berita.edit', $data->id_berita) }}"
                                         class="btn btn-outline-primary btn-sm flex-fill">
-
                                         <i class="bi bi-pencil me-1"></i>
                                         Edit
-
                                     </a>
 
-
-
                                     <form action="{{ route('berita.destroy', $data->id_berita) }}" method="POST"
-                                        class="flex-fill">
-
-
+                                        class="flex-fill" onsubmit="return confirm('Yakin ingin menghapus berita ini?')">
                                         @csrf
                                         @method('DELETE')
 
-
                                         <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-
                                             <i class="bi bi-trash me-1"></i>
                                             Hapus
-
                                         </button>
-
-
                                     </form>
-
-
                                 </div>
-
-
+                            </div>
+                        @else
+                            <div class="card-footer bg-white border-0 px-4 pb-4 text-center">
+                                <span class="text-muted small">-</span>
                             </div>
                         @endif
 

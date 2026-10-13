@@ -18,5 +18,6 @@ class Galeri extends Model
         'file',
         'kategori',
         'tanggal',
+        'id_user',
     ];
 }

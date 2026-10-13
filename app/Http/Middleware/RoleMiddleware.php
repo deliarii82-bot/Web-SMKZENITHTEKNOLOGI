@@ -11,10 +11,20 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!Auth::check() || Auth::user()->role !== $role) {
-            abort(403, 'Akses ditolak. Anda tidak punya izin.');
+
+        if (!Auth::check()) {
+            return redirect()->route('login');
         }
 
-        return $next($request);
+        $userRole = strtolower(Auth::user()->role);
+        $targetRole = strtolower($role);
+
+
+        if ($userRole === $targetRole || $userRole === 'Admin') {
+            return $next($request);
+        }
+
+
+        abort(403, 'Akses ditolak. Anda tidak punya izin.');
     }
 }

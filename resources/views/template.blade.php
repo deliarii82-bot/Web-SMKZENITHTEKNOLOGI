@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sistem Informasi Sekolah SMK Cendikia Teknologi">
 
-    <title>@yield('title', 'Dashboard') | SMK Cendikia Teknologi</title>
+    @php
+        $profil = DB::table('profil_sekolahs')->first();
+    @endphp
+    <title>@yield('title', 'Dashboard') | {{ $profil->nama_sekolah ?? 'SMK Zenith Teknologi' }}</title>
 
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendors/bootstrap-icons/bootstrap-icons.css') }}">
@@ -103,15 +106,17 @@
                     </span>
                 </a>
 
-                <a class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}"
-                    href="{{ route('user.index') }}">
-                    <span class="nav-icon">
-                        <i class="bi bi-people"></i>
-                    </span>
-                    <span class="nav-text">
-                        User
-                    </span>
-                </a>
+                @if (strtolower(auth()->user()->role) == 'admin')
+                    <a class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}"
+                        href="{{ route('user.index') }}">
+                        <span class="nav-icon">
+                            <i class="bi bi-people"></i>
+                        </span>
+                        <span class="nav-text">
+                            User
+                        </span>
+                    </a>
+                @endif
 
                 <div class="sidebar-section">
                     <span>INFORMASI</span>
@@ -183,12 +188,12 @@
 
                 <div class="container-fluid px-3 px-lg-4">
 
-                    <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="adminSidebar"
+                    {{-- <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="adminSidebar"
                         aria-expanded="true" aria-label="Toggle sidebar">
                         <span></span>
                         <span></span>
                         <span></span>
-                    </button>
+                    </button> --}}
 
                     <!-- Profil Admin -->
                     <div class="dropdown ms-auto">

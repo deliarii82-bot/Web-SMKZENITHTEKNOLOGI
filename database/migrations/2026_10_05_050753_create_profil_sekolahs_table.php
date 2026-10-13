@@ -26,6 +26,8 @@ return new class extends Migration
 
             $table->string('npsn', 10);
             $table->text('alamat');
+            $table->text('google_maps_embed')->nullable(); // iframe src dari Google Maps
+            $table->string('google_maps_link')->nullable();
             $table->string('kontak', 15);
             $table->text('visi_misi');
             $table->year('tahun_berdiri');

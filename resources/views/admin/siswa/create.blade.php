@@ -62,6 +62,21 @@
 
                     </div>
 
+                    <div class="mb-3">
+                        <label for="kelas_id" class="form-label">Kelas</label>
+                        <select name="kelas_id" class="form-select @error('kelas_id') is-invalid @enderror" required>
+                            <option value="" disabled selected>-- Pilih Kelas --</option>
+                            @foreach ($kelasList as $kelas)
+                                <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                                    {{ $kelas->nama_kelas }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('kelas_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
 
                     {{-- JENIS KELAMIN --}}
                     <div class="mb-3">
@@ -148,8 +163,6 @@
                         </button>
 
                     </div>
-
-
 
             </div>
 

@@ -13,10 +13,12 @@ class Ekstrakulikuler extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'id_jurusan',
         'nama_ekskul',
         'pembina',
         'jadwal_latihan',
         'deskripsi',
         'gambar',
+        'id_user',
     ];
 }

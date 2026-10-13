@@ -131,6 +131,7 @@
                             <th class="px-4">No</th>
                             <th>NISN</th>
                             <th>Nama Siswa</th>
+                            <th>Kelas</th>
                             <th>Jenis Kelamin</th>
                             <th>Tahun Masuk</th>
                             <th>Jurusan</th>
@@ -163,6 +164,7 @@
                                     {{ $data->nama_siswa }}
                                 </td>
 
+                             <td>{{ $data->kelasRelasi->nama_kelas ?? 'Belum Ada Kelas' }}</td>
 
                                 <td>
                                     {{ $data->jenis_kelamin }}
@@ -175,9 +177,7 @@
 
 
                                 {{-- JURUSAN --}}
-                                <td>
-                                    {{ $data->jurusan->nama_jurusan ?? '-' }}
-                                </td>
+                                <td>{{ $data->jurusan ? $data->jurusan->nama_jurusan : '-' }}</td>
 
 
                                 {{-- AKSI --}}

@@ -4,19 +4,47 @@ namespace App\Http\Controllers;
 
 use App\Models\Prestasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PrestasiController extends Controller
 {
-    public function index()
-    {
-        $prestasi = Prestasi::orderBy('id', 'desc')->get();
+   public function index(Request $request)
+{
+    $query = Prestasi::query();
 
-        return view('admin.prestasi.index', compact('prestasi'));
+    if ($request->search) {
+        $query->where(function ($q) use ($request) {
+            $q->where('nama_prestasi', 'like', '%' . $request->search . '%')
+              ->orWhere('nama_siswa', 'like', '%' . $request->search . '%');
+        });
     }
+
+    // Filter tingkat
+    if ($request->tingkat) {
+        $query->where('tingkat', $request->tingkat);
+    }
+
+    $prestasi = $query->orderBy('id', 'desc')->get();
+
+    // Daftar tingkat sesuai ENUM di database
+    $daftarTingkat = [
+        'Sekolah',
+        'Kecamatan',
+        'Kabupaten/Kota',
+        'Provinsi',
+        'Nasional',
+        'Internasional'
+    ];
+
+    return view('Admin.prestasi.index', compact(
+        'prestasi',
+        'daftarTingkat'
+    ));
+}
 
     public function create()
     {
-        return view('admin.prestasi.create');
+        return view('Admin.prestasi.create');
     }
 
     public function store(Request $request)
@@ -50,6 +78,7 @@ class PrestasiController extends Controller
             'keterangan' => $request->keterangan,
             'foto' => $namaFoto,
             'tahun_ajaran' => $request->tahun_ajaran,
+            'id_user' => Auth::id(),
         ]);
 
         return redirect()
@@ -60,13 +89,25 @@ class PrestasiController extends Controller
     public function edit($id)
     {
         $prestasi = Prestasi::findOrFail($id);
+        $user = Auth::user();
 
-        return view('admin.prestasi.edit', compact('prestasi'));
+        // Pengamanan akses edit
+        if ($user->role !== 'Admin' && $prestasi->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('Admin.prestasi.edit', compact('prestasi'));
     }
 
     public function update(Request $request, $id)
     {
         $prestasi = Prestasi::findOrFail($id);
+        $user = Auth::user();
+
+        // Pengamanan akses update
+        if ($user->role !== 'Admin' && $prestasi->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $request->validate([
             'nama_prestasi' => 'required|max:100',
@@ -88,7 +129,6 @@ class PrestasiController extends Controller
         ];
 
         if ($request->hasFile('foto')) {
-
             if (
                 $prestasi->foto &&
                 file_exists(public_path('gambar/prestasi/' . $prestasi->foto))
@@ -116,6 +156,12 @@ class PrestasiController extends Controller
     public function destroy($id)
     {
         $prestasi = Prestasi::findOrFail($id);
+        $user = Auth::user();
+
+        // Pengamanan akses hapus
+        if ($user->role !== 'Admin' && $prestasi->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
 
         if (
             $prestasi->foto &&

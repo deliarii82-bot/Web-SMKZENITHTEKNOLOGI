@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class PengumumanController extends Controller
 {
-  public function index(Request $request)
+ public function index(Request $request)
 {
+    $user = Auth::user();
     $query = Pengumuman::query();
 
-    // Pencarian
     if ($request->search) {
         $query->where(function ($q) use ($request) {
             $q->where('judul', 'like', '%' . $request->search . '%')
@@ -20,24 +20,25 @@ class PengumumanController extends Controller
         });
     }
 
-    // Filter status
+
     if ($request->status) {
         $query->where('status', $request->status);
     }
 
-    $pengumuman = $query->get();
+    $pengumuman = $query->latest()->get();
 
-    // Pilihan status sesuai ENUM database
+
     $status = [
         'Publish',
         'Draft'
     ];
 
-    return view('admin.pengumuman.index', compact('pengumuman', 'status'));
+    return view('Admin.pengumuman.index', compact('pengumuman', 'status'));
 }
+
     public function create()
     {
-        return view('admin.pengumuman.create');
+        return view('Admin.pengumuman.create');
     }
 
     public function store(Request $request)
@@ -65,14 +66,20 @@ class PengumumanController extends Controller
     {
         $pengumuman = Pengumuman::findOrFail($id);
 
-        return view('admin.pengumuman.show', compact('pengumuman'));
+        return view('Admin.pengumuman.show', compact('pengumuman'));
     }
 
-    public function edit(string $id)
+   public function edit($id)
     {
         $pengumuman = Pengumuman::findOrFail($id);
+        $user = Auth::user();
 
-        return view('admin.pengumuman.edit', compact('pengumuman'));
+        // Sisipkan pengecekan ini di tengah
+        if ($user->role !== 'Admin' && $pengumuman->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('Admin.pengumuman.edit', compact('pengumuman'));
     }
 
     public function update(Request $request, string $id)

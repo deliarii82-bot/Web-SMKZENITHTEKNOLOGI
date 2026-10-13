@@ -7,10 +7,14 @@
     <div class="container-fluid">
 
         {{-- HEADER --}}
+        @php
+            $profil = DB::table('profil_sekolahs')->first();
+        @endphp
+
         <div class="mb-4">
             <h2 class="fw-bold mb-1">Dashboard</h2>
             <p class="text-muted mb-0">
-                Selamat datang di Sistem Informasi Sekolah SMK Cendikia Teknologi.
+                Selamat datang di Sistem Informasi Sekolah {{ $profil->nama_sekolah ?? 'SMK Zenith Teknologi' }}.
             </p>
         </div>
 
@@ -296,122 +300,62 @@
         {{-- INFORMASI BAWAH --}}
         <div class="row g-4">
 
-          {{-- PENGUMUMAN --}}
-<div class="col-lg-6">
-
-    <div class="card border-0 shadow-sm h-100">
-
-        <div class="card-header bg-white border-0 p-4">
-
-            <div class="d-flex justify-content-between align-items-center">
-
-                <div>
-                    <h5 class="fw-bold mb-1">
-                        Pengumuman
-                    </h5>
-
-                    <p class="text-muted mb-0">
-                        Informasi terbaru sekolah
-                    </p>
-                </div>
-
-                <i class="bi bi-megaphone fs-3 text-primary"></i>
-
-            </div>
-
-        </div>
-
-        <div class="card-body">
-
-            @if ($pengumumanTerbaru)
-
-                <div class="border rounded-3 p-3">
-
-                    <h6 class="fw-bold mb-2">
-                        {{ $pengumumanTerbaru->judul }}
-                    </h6>
-
-                    <p class="text-muted small mb-3">
-                        {{ \Illuminate\Support\Str::limit(
-                            strip_tags($pengumumanTerbaru->isi),
-                            120
-                        ) }}
-                    </p>
-
-                    <small class="text-muted">
-                        <i class="bi bi-calendar3 me-1"></i>
-
-                        {{ \Carbon\Carbon::parse(
-                            $pengumumanTerbaru->tanggal
-                        )->format('d M Y') }}
-                    </small>
-
-                </div>
-
-            @else
-
-                <div class="text-center py-4">
-
-                    <i class="bi bi-megaphone text-secondary"
-                       style="font-size:45px;"></i>
-
-                    <p class="text-muted mt-3 mb-0">
-                        Belum ada pengumuman.
-                    </p>
-
-                </div>
-
-            @endif
-
-        </div>
-
-    </div>
-
-</div>
-
-
-            {{-- EKSTRAKULIKULER --}}
+            {{-- PENGUMUMAN --}}
             <div class="col-lg-6">
 
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm h-100">
 
                     <div class="card-header bg-white border-0 p-4">
 
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between align-items-center">
 
                             <div>
-
                                 <h5 class="fw-bold mb-1">
-                                    Ekstrakulikuler
+                                    Pengumuman
                                 </h5>
 
                                 <p class="text-muted mb-0">
-                                    Kegiatan siswa
+                                    Informasi terbaru sekolah
                                 </p>
-
                             </div>
 
-                            <i class="bi bi-trophy
-                                  fs-3 text-danger"></i>
+                            <i class="bi bi-megaphone fs-3 text-primary"></i>
 
                         </div>
 
                     </div>
 
-
                     <div class="card-body">
 
-                        <div class="text-center py-4">
+                        @if ($pengumumanTerbaru)
+                            <div class="border rounded-3 p-3">
 
-                            <i class="bi bi-trophy
-                                  text-secondary"
-                                style="font-size:45px;"></i>
+                                <h6 class="fw-bold mb-2">
+                                    {{ $pengumumanTerbaru->judul }}
+                                </h6>
 
-                            <p class="text-muted mt-3 mb-0">
-                                Belum ada data ekstrakulikuler.
-                            </p>
+                                <p class="text-muted small mb-3">
+                                    {{ \Illuminate\Support\Str::limit(strip_tags($pengumumanTerbaru->isi), 120) }}
+                                </p>
 
-                        </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3 me-1"></i>
+
+                                    {{ \Carbon\Carbon::parse($pengumumanTerbaru->tanggal)->format('d M Y') }}
+                                </small>
+
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+
+                                <i class="bi bi-megaphone text-secondary" style="font-size:45px;"></i>
+
+                                <p class="text-muted mt-3 mb-0">
+                                    Belum ada pengumuman.
+                                </p>
+
+                            </div>
+                        @endif
 
                     </div>
 
@@ -419,8 +363,33 @@
 
             </div>
 
+
+            <!-- Bagian Pengumuman Full Width -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 rounded-3 p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Berita Terbaru</h5>
+                        <i class="bi bi-newspaper fs-4 text-primary"></i>
+                    </div>
+                    <p class="text-muted small">Informasi dan kegiatan sekolah</p>
+
+                    <!-- Looping atau tampilkan data berita terbaru -->
+                    <div class="p-3 bg-light rounded-3">
+                        @if (isset($beritaTerbaru) && $beritaTerbaru)
+                            <h6 class="fw-bold">{{ $beritaTerbaru->judul }}</h6>
+                            <p class="text-muted small mb-1">{{ Str::limit($beritaTerbaru->isi, 100) }}</p>
+                            <small class="text-muted"><i class="bi bi-calendar3"></i>
+                                {{ \Carbon\Carbon::parse($beritaTerbaru->created_at)->format('d M Y') }}</small>
+                        @else
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+                                <span>Belum ada data berita.</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-    </div>
-
-@endsection
+    @endsection

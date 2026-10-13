@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Galeri;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class GaleriController extends Controller
 {
@@ -11,7 +12,6 @@ class GaleriController extends Controller
     {
         $query = Galeri::query();
 
-        // Pencarian
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('judul', 'like', '%' . $request->search . '%')
@@ -19,25 +19,21 @@ class GaleriController extends Controller
             });
         }
 
-        // Filter kategori
         if ($request->kategori) {
             $query->where('kategori', $request->kategori);
         }
-
-        $galeri = $query->get();
-
-        // Pilihan kategori sesuai ENUM database
+        $galeri = $query->latest()->get();
         $kategori = [
             'Foto',
             'Video'
         ];
 
-        return view('admin.galeri.index', compact('galeri', 'kategori'));
+        return view('Admin.galeri.index', compact('galeri', 'kategori'));
     }
 
     public function create()
     {
-        return view('admin.galeri.create');
+        return view('Admin.galeri.create');
     }
 
     public function store(Request $request)
@@ -45,7 +41,8 @@ class GaleriController extends Controller
         $request->validate([
             'judul' => 'required|max:50',
             'keterangan' => 'required',
-            'file' => 'required|file|max:10240',
+            // Izinkan format gambar dan video (jpg, png, mp4, mkv, avi, dll)
+            'file' => 'required|file|mimes:jpg,jpeg,png,mp4,mov,avi,mkv|max:51200', // Maksimal 50MB
             'kategori' => 'required|in:Foto,Video',
             'tanggal' => 'required|date',
         ]);
@@ -63,28 +60,55 @@ class GaleriController extends Controller
             'file' => $namaFile,
             'kategori' => $request->kategori,
             'tanggal' => $request->tanggal,
+            'id_user' => Auth::id(),
         ]);
 
-        return redirect()->route('galeri.index');
+        return redirect()->route('galeri.index')->with('success', 'Data galeri berhasil ditambahkan!');
     }
 
     public function show(string $id)
     {
         $galeri = Galeri::findOrFail($id);
+        $user = Auth::user();
 
-        return view('admin.galeri.show', compact('galeri'));
+        // Pengamanan akses show
+        if ($user->role !== 'Admin' && $galeri->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('Admin.galeri.show', compact('galeri'));
     }
 
     public function edit(string $id)
     {
-        $galeri = Galeri::findOrFail($id);
 
-        return view('admin.galeri.edit', compact('galeri'));
+        $galeri = Galeri::where('id_galeri', $id)->firstOrFail();
+        $user = Auth::user();
+
+        // Pengecekan role yang aman
+        $role = strtolower($user->role);
+        if ($role !== 'Admin' && $galeri->id_user !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Pilihan kategori jika dibutuhkan di form edit
+        $kategori = [
+            'Foto',
+            'Video'
+        ];
+
+        return view('admin.galeri.edit', compact('galeri', 'kategori'));
     }
 
     public function update(Request $request, string $id)
     {
         $galeri = Galeri::findOrFail($id);
+        $user = Auth::user();
+
+        // Pengamanan akses update
+        if ($user->role !== 'Admin' && $galeri->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $request->validate([
             'judul' => 'required|max:50',
@@ -102,9 +126,18 @@ class GaleriController extends Controller
 
         if ($request->hasFile('file')) {
 
+
             $request->validate([
-                'file' => 'file|max:10240'
+                'file' => 'file|mimes:jpg,jpeg,png,mp4,mov,avi,mkv|max:20480'
             ]);
+
+
+            if (
+                $galeri->file &&
+                file_exists(public_path('gambar/galeri/' . $galeri->file))
+            ) {
+                unlink(public_path('gambar/galeri/' . $galeri->file));
+            }
 
             $namaFile = time() . '.' . $request->file->extension();
 
@@ -118,15 +151,29 @@ class GaleriController extends Controller
 
         $galeri->update($data);
 
-        return redirect()->route('galeri.index');
+        return redirect()->route('galeri.index')->with('success', 'Galeri berhasil diperbarui!');
     }
 
     public function destroy(string $id)
     {
         $galeri = Galeri::findOrFail($id);
+        $user = Auth::user();
+
+        // Pengamanan akses destroy
+        if ($user->role !== 'Admin' && $galeri->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Hapus file fisik jika ada
+        if (
+            $galeri->file &&
+            file_exists(public_path('gambar/galeri/' . $galeri->file))
+        ) {
+            unlink(public_path('gambar/galeri/' . $galeri->file));
+        }
 
         $galeri->delete();
 
-        return redirect()->route('galeri.index');
+        return redirect()->route('galeri.index')->with('success', 'Galeri berhasil dihapus!');
     }
 }

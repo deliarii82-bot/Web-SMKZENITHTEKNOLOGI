@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Siswa;
 use App\Models\Jurusan;
+use App\Models\Kelas;
 use Illuminate\Http\Request;
 
 
@@ -14,7 +15,7 @@ class SiswaController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Siswa::with('jurusan');
+       $query = Siswa::with(['jurusan', 'kelasRelasi']);
 
         // Pencarian
         if ($request->search) {
@@ -29,7 +30,7 @@ class SiswaController extends Controller
             $query->where('jenis_kelamin', $request->jenis_kelamin);
         }
 
-        $siswa = $query->get();
+       $siswa = $query->orderBy('nama_siswa', 'asc')->get();
 
         $jenisKelamin = [
             'laki-laki',
@@ -45,21 +46,22 @@ class SiswaController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        $jurusans = Jurusan::all();
+   public function create()
+{
+    $jurusans = Jurusan::all();
+    $kelasList = Kelas::all();
 
-        return view('admin.siswa.create', compact('jurusans'));
-    }
-
+    return view('admin.siswa.create', compact('jurusans', 'kelasList'));
+}
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $request->validate([
             'nisn' => 'required|max:10',
             'nama_siswa' => 'required|max:40',
+            'kelas_id' => 'required',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
             'tahun_masuk' => 'required|digits:4',
             'id_jurusan' => 'required',
@@ -68,14 +70,14 @@ class SiswaController extends Controller
         Siswa::create([
             'nisn' => $request->nisn,
             'nama_siswa' => $request->nama_siswa,
+            'kelas' => $request->kelas_id,
             'jenis_kelamin' => $request->jenis_kelamin,
             'tahun_masuk' => $request->tahun_masuk,
             'id_jurusan' => $request->id_jurusan,
         ]);
 
-        return redirect()->route('siswa.index');
+        return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil disimpan!');
     }
-
     /**
      * Display the specified resource.
      */
@@ -87,42 +89,42 @@ class SiswaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+   public function edit(string $id)
     {
         $siswa = Siswa::findOrFail($id);
 
         $jurusans = Jurusan::all();
+        $kelasList = Kelas::all();
 
-        return view('admin.siswa.edit', compact(
-            'siswa',
-            'jurusans'
-        ));
+        return view('admin.siswa.edit', compact('siswa', 'jurusans', 'kelasList'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+   public function update(Request $request, $id)
     {
-        $siswa = Siswa::findOrFail($id);
-
         $request->validate([
             'nisn' => 'required|max:10',
             'nama_siswa' => 'required|max:40',
+            'kelas_id' => 'required', // Tangkap dari form edit
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
             'tahun_masuk' => 'required|digits:4',
             'id_jurusan' => 'required',
         ]);
 
+        $siswa = Siswa::findOrFail($id);
+
         $siswa->update([
             'nisn' => $request->nisn,
             'nama_siswa' => $request->nama_siswa,
+            'kelas' => $request->kelas_id, // Masukkan ke kolom database 'kelas'
             'jenis_kelamin' => $request->jenis_kelamin,
             'tahun_masuk' => $request->tahun_masuk,
             'id_jurusan' => $request->id_jurusan,
         ]);
 
-        return redirect()->route('siswa.index');
+        return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil diperbarui!');
     }
 
     /**
@@ -136,4 +138,13 @@ class SiswaController extends Controller
 
         return redirect()->route('siswa.index');
     }
+
+    public function publicIndex()
+    {
+        $siswa = Siswa::with('jurusan')->orderBy('nama_siswa', 'asc')->get();
+
+        return view('landing.index', compact('siswa'));
+    }
+
+
 }

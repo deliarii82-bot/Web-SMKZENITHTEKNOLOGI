@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Guru;
+use Illuminate\Support\Facades\Auth;
 
 class GuruController extends Controller
 {
     public function index(Request $request)
-    {
-       $query = Guru::query();
+{
+    $query = Guru::query();
 
     // Pencarian
     if ($request->search) {
@@ -25,7 +26,11 @@ class GuruController extends Controller
         $query->where('jabatan', $request->jabatan);
     }
 
-    $gurus = $query->get();
+    // Urutkan dari A sampai Z
+    $query->orderBy('nama_guru', 'asc');
+
+    // Menggunakan paginate() agar pagination dan pencarian tetap sinkron
+    $gurus = $query->paginate(10)->withQueryString();
 
     // Pilihan jabatan sesuai ENUM database
     $jabatan = [
@@ -35,8 +40,7 @@ class GuruController extends Controller
     ];
 
     return view('admin.guru.index', compact('gurus', 'jabatan'));
-    }
-
+}
 
     public function create()
     {
@@ -48,7 +52,9 @@ class GuruController extends Controller
     {
         $request->validate([
             'nama_guru' => 'required|max:40',
-            'nip' => 'required|max:15',
+            'nip' => 'required|numeric|unique:gurus,nip',
+            'nip.unique' => 'NIP sudah terdaftar untuk guru lain!',
+            'nip.numeric' => 'NIP harus berupa angka!',
             'mapel' => 'required|max:40',
             'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048'
         ]);
@@ -81,11 +87,12 @@ class GuruController extends Controller
     }
 
 
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $request->validate([
             'nama_guru' => 'required|max:40',
-            'nip' => 'required|max:15',
+            'nip' => 'required|numeric|unique:gurus,nip,' . $id . ',id_guru', // Tambahkan ,id_guru di sini
+            'nama' => 'required|string|max:255',
             'mapel' => 'required|max:40'
         ]);
 
@@ -103,13 +110,20 @@ class GuruController extends Controller
     }
 
 
-    public function destroy($id)
-    {
-        $guru = Guru::findOrFail($id);
-
-        $guru->delete();
-
-        return redirect()->route('guru.index')
-            ->with('success', 'Guru deleted successfully');
+  public function destroy($id)
+{
+    if (strtolower(Auth::user()->role) !== 'admin') {
+        abort(403, 'Maaf, operator tidak diizinkan menghapus data.');
     }
+
+    $guru = Guru::findOrFail($id);
+    $guru->delete();
+
+    return redirect()->route('guru.index')->with('success', 'Data guru berhasil dihapus.');
+}
+
+    public function show($id)
+{
+    return redirect()->route('guru.index');
+}
 }

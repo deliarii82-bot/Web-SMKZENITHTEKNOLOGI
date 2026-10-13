@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('berita', function (Blueprint $table) {
             $table->id('id_berita');
             $table->text('judul');
+            $table->string('slug')->unique();
             $table->text('isi');
             $table->date('tanggal');
             $table->string('gambar', 100)->nullable();
@@ -21,6 +22,8 @@ return new class extends Migration
                 ->references('id_user')
                 ->on('users')
                 ->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 
@@ -29,3 +32,4 @@ return new class extends Migration
         Schema::dropIfExists('berita');
     }
 };
+

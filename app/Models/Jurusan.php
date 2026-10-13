@@ -8,11 +8,12 @@ class Jurusan extends Model
 {
     protected $table = 'jurusans';
 
-    protected $primaryKey = 'id_jurusan';
+    protected $primaryKey = 'id';
 
     public $timestamps = false;
 
     protected $fillable = [
+        'id_jurusan',
         'nama_jurusan',
         'singkatan',
         'deskripsi',

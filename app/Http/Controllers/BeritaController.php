@@ -5,40 +5,41 @@ namespace App\Http\Controllers;
 use App\Models\Berita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class BeritaController extends Controller
 {
     public function index(Request $request)
-    {
-        $query = Berita::query();
+{
+    $user = Auth::user();
+    $query = Berita::query();
 
-        // Pencarian
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('judul', 'like', '%' . $request->search . '%')
-                    ->orWhere('isi', 'like', '%' . $request->search . '%');
-            });
-        }
 
-        // Filter status
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-
-        $berita = $query->get();
-
-        // Pilihan status sesuai ENUM database
-        $status = [
-            'Publish',
-            'Draft'
-        ];
-
-        return view('admin.berita.index', compact('berita', 'status'));
+    if ($request->search) {
+        $query->where(function ($q) use ($request) {
+            $q->where('judul', 'like', '%' . $request->search . '%')
+                ->orWhere('isi', 'like', '%' . $request->search . '%');
+        });
     }
+
+    if ($request->status) {
+        $query->where('status', $request->status);
+    }
+
+    $berita = $query->orderBy('tanggal', 'desc')->get();
+
+
+    $status = [
+        'Publish',
+        'Draft'
+    ];
+
+    return view('Admin.berita.index', compact('berita', 'status'));
+}
 
     public function create()
     {
-        return view('admin.berita.create');
+        return view('Admin.berita.create');
     }
 
     public function store(Request $request)
@@ -52,6 +53,7 @@ class BeritaController extends Controller
         ]);
 
         $data = $request->except('gambar');
+
 
         if ($request->hasFile('gambar')) {
             $data['gambar'] = $request->file('gambar')
@@ -67,23 +69,29 @@ class BeritaController extends Controller
             ->with('success', 'Berita berhasil ditambahkan.');
     }
 
-    public function show(string $id)
-    {
-        $berita = Berita::findOrFail($id);
-
-        return view('admin.berita.show', compact('berita'));
-    }
 
     public function edit(string $id)
     {
         $berita = Berita::findOrFail($id);
+        $user = Auth::user();
 
-        return view('admin.berita.edit', compact('berita'));
+        // Pengamanan akses edit
+        if ($user->role !== 'Admin' && $berita->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('Admin.berita.edit', compact('berita'));
     }
 
     public function update(Request $request, string $id)
     {
         $berita = Berita::findOrFail($id);
+        $user = Auth::user();
+
+        // Pengamanan akses update
+        if ($user->role !== 'Admin' && $berita->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $request->validate([
             'judul' => 'required',
@@ -94,6 +102,7 @@ class BeritaController extends Controller
         ]);
 
         $data = $request->except('gambar');
+        $data['slug'] = Str::slug($request->judul);
 
         if ($request->hasFile('gambar')) {
             $data['gambar'] = $request->file('gambar')
@@ -110,6 +119,12 @@ class BeritaController extends Controller
     public function destroy(string $id)
     {
         $berita = Berita::findOrFail($id);
+        $user = Auth::user();
+
+        // Pengamanan akses destroy
+        if ($user->role !== 'Admin' && $berita->id_user !== $user->id_user) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $berita->delete();
 

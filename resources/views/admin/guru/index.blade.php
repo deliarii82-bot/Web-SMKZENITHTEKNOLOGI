@@ -9,13 +9,15 @@
         {{-- HEADER --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
 
+
             <div>
                 <h2 class="fw-bold mb-1">Data Guru</h2>
 
                 <p class="text-muted mb-0">
-                    SMK Cendikia Teknologi
+                    {{ $profil->nama_sekolah ?? 'Nama Sekolah' }}
                 </p>
             </div>
+
 
             <div class="d-flex gap-2">
 
@@ -26,12 +28,10 @@
                 </a>
 
                 {{-- TAMBAH GURU --}}
-                @if (auth()->user()->role == 'Admin')
-                    <a href="{{ route('guru.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg me-2"></i>
-                        Tambah Guru
-                    </a>
-                @endif
+                <a href="{{ route('guru.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>
+                    Tambah Guru
+                </a>
 
             </div>
 
@@ -125,31 +125,22 @@
 
                         {{-- FOTO --}}
 
-                       {{-- FOTO --}}
-<div class="text-center pt-4">
+                        {{-- FOTO --}}
+                        <div class="text-center pt-4">
 
-    @if ($guru->foto)
+                            @if ($guru->foto)
+                                <img src="{{ asset('gambar/guru/' . $guru->foto) }}" alt="Foto {{ $guru->nama_guru }}"
+                                    width="150" height="170" class="object-fit-cover rounded-3">
+                            @else
+                                <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-3"
+                                    style="width: 150px; height: 170px;">
 
-        <img
-            src="{{ asset('gambar/guru/' . $guru->foto) }}"
-            alt="Foto {{ $guru->nama_guru }}"
-            width="150"
-            height="170"
-            class="object-fit-cover rounded-3"
-        >
+                                    <i class="bi bi-person fs-1"></i>
 
-    @else
+                                </div>
+                            @endif
 
-        <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-3"
-             style="width: 150px; height: 170px;">
-
-            <i class="bi bi-person fs-1"></i>
-
-        </div>
-
-    @endif
-
-</div>
+                        </div>
 
 
                         {{-- INFORMASI --}}
@@ -209,43 +200,32 @@
 
 
                         {{-- AKSI --}}
-                        @if (auth()->user()->role == 'Admin')
-                            <div class="card-footer bg-white border-0 px-4 pb-4">
+                        <div class="card-footer bg-white border-0 px-4 pb-4">
+                            <div class="d-flex gap-2">
 
-                                <div class="d-flex gap-2">
+                                {{-- EDIT: Bisa diakses oleh Admin maupun Operator --}}
+                                <a href="{{ route('guru.edit', $guru->id_guru) }}"
+                                    class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="bi bi-pencil me-1"></i>
+                                    Edit
+                                </a>
 
-                                    {{-- EDIT --}}
-                                    <a href="{{ route('guru.edit', $guru->id_guru) }}"
-                                        class="btn btn-outline-primary btn-sm flex-fill">
-
-                                        <i class="bi bi-pencil me-1"></i>
-                                        Edit
-
-                                    </a>
-
-
-                                    {{-- HAPUS --}}
+                                {{-- HAPUS: Hanya muncul khusus untuk Admin --}}
+                                @if (strtolower(auth()->user()->role) == 'admin')
                                     <form action="{{ route('guru.destroy', $guru->id_guru) }}" method="POST"
                                         class="flex-fill">
-
                                         @csrf
                                         @method('DELETE')
-
                                         <button type="submit" class="btn btn-outline-danger btn-sm w-100"
                                             onclick="return confirm('Yakin ingin menghapus data ini?')">
-
                                             <i class="bi bi-trash me-1"></i>
                                             Hapus
-
                                         </button>
-
                                     </form>
-
-                                </div>
+                                @endif
 
                             </div>
-                        @endif
-
+                        </div>
                     </div>
 
                 </div>
